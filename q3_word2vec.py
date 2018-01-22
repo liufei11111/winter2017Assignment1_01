@@ -15,7 +15,9 @@ def normalizeRows(x):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    temp  = np.sum(np.square(x),axis=1)
+    unit = np.sqrt(temp)
+    x = np.divide(x.T,unit).T
     ### END YOUR CODE
 
     return x
@@ -58,7 +60,16 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    y_hat = np.exp(np.dot(predicted, outputVectors.T)) # 1 * V
+    y_hat_sum = np.sum(y_hat)
+    y_hat = y_hat/y_hat_sum # 1*V the y_hat in doc
+    # print 'y_hat[target]',y_hat[target]
+    cost = - np.log(y_hat[target])
+
+    y_hat[target] = y_hat[target] - 1
+    gradPred = np.dot( y_hat , outputVectors) # 1 * D
+
+    grad = np.dot(y_hat[:,np.newaxis], predicted[np.newaxis,:]) # V * D
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -95,8 +106,29 @@ def negSamplingCostAndGradient(predicted, target, outputVectors, dataset,
     indices = [target]
     indices.extend(getNegativeSamples(target, dataset, K))
 
+    grad = np.zeros(outputVectors.shape)
     ### YOUR CODE HERE
-    raise NotImplementedError
+    indices = indices[1:]
+    u_o = outputVectors[target,:]
+    sampled_vectors = outputVectors[indices,:] # K * D
+    u_o_dot_c = np.dot(u_o,predicted[:,np.newaxis]) # K * 1
+    sigmoid_neg_sample_pred = (sigmoid(-np.dot(sampled_vectors, predicted[:,np.newaxis]))) # Sigma(-u_t * v_c) : K * 1
+    sigmoid_u_o_dot_c = sigmoid(u_o_dot_c) # 1 * 1
+    part1 = np.log(sigmoid_u_o_dot_c) # 1*1
+    part2 = np.sum(np.log(sigmoid_neg_sample_pred)) # 1*1
+    cost = - part1 - part2
+    gradPred = (sigmoid_u_o_dot_c - 1) * u_o - np.sum(np.multiply((sigmoid_neg_sample_pred - 1).T,sampled_vectors.T).T,axis=0) # 1 * D
+    grad[target,:] = (sigmoid_u_o_dot_c - 1)*predicted
+    # print 'sigmoid_neg_sample_pred.T.shape', sigmoid_neg_sample_pred.T.shape
+    # print 'predicted.shape',predicted.shape
+    # print '(sigmoid_neg_sample_pred - 1).T.shape',(sigmoid_neg_sample_pred - 1).T.shape
+    # print 'predicted[np.newaxis,:].shape', predicted[np.newaxis,:].shape
+    grad_updates = - np.dot((sigmoid_neg_sample_pred - 1),predicted[np.newaxis,:])
+    i = 0
+    index_count_map = {}
+    for index in indices:
+        grad[index,:] += grad_updates[i,:]
+        i+=1
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -131,7 +163,21 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    c_index = tokens[currentWord]
+    context_index_list = [tokens[contextWord] for contextWord in contextWords]
+    N = len(context_index_list)
+    predicted = inputVectors[c_index]
+    cum_cost = 0.0
+
+    for target_index in context_index_list:
+    # softmaxCostAndGradient(predicted, target, outputVectors, dataset):
+        row_cost, row_gradIn, row_gradOut = word2vecCostAndGradient(predicted, target_index, outputVectors, dataset)
+        gradIn[c_index,:] += row_gradIn
+        gradOut += row_gradOut
+        cum_cost += row_cost
+    # gradIn = gradIn/N
+    # gradOut = gradOut/N
+    cost = cum_cost
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
@@ -155,7 +201,7 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # raise NotImplementedError
     ### END YOUR CODE
 
     return cost, gradIn, gradOut

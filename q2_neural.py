@@ -39,13 +39,60 @@ def forward_backward_prop(X, labels, params, dimensions):
     b2 = np.reshape(params[ofs:ofs + Dy], (1, Dy))
 
     # Note: compute cost based on `sum` not `mean`.
+    # wrap around the data structure
+
+    X = np.insert(X,H,[1.0],axis = 1) # M * (Dx + 1)
+    # print 'data',data
+    W1 = np.insert(W1,Dx,b1,axis = 0) # (Dx + 1) * H
+    # print 'W1',W1
     ### YOUR CODE HERE: forward propagation
-    raise NotImplementedError
+    #X W1 b1 -> Z1 f -> h w2 b2 -> Z2 CE -> a
+    z1 = np.dot(X, W1) # M * H
+    # print 'z1',z1
+    # print 'z1',z1
+    h = sigmoid(z1)  # M * H
+    # print 'h',h
+    # wrap around the data structure
+    h = np.insert(h,H,[1.0],axis = 1) # M * (H + 1)
+    # print 'h',h
+    W2 = np.insert(W2, H, b2, axis = 0) # (H + 1) * Dy
+    # print 'W2',W2
+    # true second layer calculation
+    z2 = np.dot(h,W2) # M* Dy
+    # print 'z2',z2
+    soft_max_z2 = softmax(z2) # M * Dy
+    # print 'soft_max_z2',soft_max_z2
+    matrix_cost = np.log(np.multiply(soft_max_z2, labels).sum(axis=1))
+    cost = -1 * matrix_cost.sum()
+    # print 'cost',cost
     ### END YOUR CODE
 
     ### YOUR CODE HERE: backward propagation
-    raise NotImplementedError
-    ### END YOUR CODE
+    #   g_w1 = x_t * sigma3 & g_b1 = sigma3
+    # | sigma 3(z1) = sigma2 * f'(z1)
+    # | sigma 2(h) =  sigma1 * w2
+    # | g_w2 = sigma1*h & g_b2 = sigma1
+    # | sigma1 (Z2) = y_hat - y
+    sigma_1 = np.subtract(soft_max_z2, labels) # M * Dy : ce/y_hat
+    # print 'sigma_1', sigma_1
+    gradW2 = np.dot(np.transpose(h),sigma_1) # (H+1) * Dy : ce/w2
+    # print 'gradW2 before ', gradW2
+    # extract
+    gradb2 = gradW2[H,:] # 1 * H
+    # print 'gradb2', gradb2
+    temp_gradW2 = gradW2
+    gradW2 = gradW2[0:H,:] # H * Dy
+    # print 'gradW2 after ', gradW2
+    #
+    sigma_2 = np.dot(sigma_1, np.transpose(W2)) [:,0:H]# M * H + 1  ce/y_hat  ce/h
+    # print 'sigma_2',sigma_2
+    sigma_3 = np.multiply(sigmoid_grad(h[:,0:H]), sigma_2)# M * H
+    # print 'sigma_3',sigma_3
+    gradW1 = np.dot(np.transpose(X), sigma_3) # (Dx + 1)  * H
+    # print 'gradW1 ', gradW1
+    gradb1 = gradW1[Dx,:] # 1 * H
+    # print 'gradb1 ', gradb1
+    gradW1 = gradW1[0:Dx,:]
 
     ### Stack gradients (do not modify)
     grad = np.concatenate((gradW1.flatten(), gradb1.flatten(),
@@ -84,7 +131,7 @@ def your_sanity_checks():
     """
     print "Running your sanity checks..."
     ### YOUR CODE HERE
-    raise NotImplementedError
+    # raise NotImplementedError
     ### END YOUR CODE
 
 
