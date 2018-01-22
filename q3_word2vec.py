@@ -60,16 +60,16 @@ def softmaxCostAndGradient(predicted, target, outputVectors, dataset):
     """
 
     ### YOUR CODE HERE
-    y_hat = np.exp(np.dot(predicted, outputVectors.T)) # 1 * V
-    y_hat_sum = np.sum(y_hat)
-    y_hat = y_hat/y_hat_sum # 1*V the y_hat in doc
+    y_hat = softmax(np.dot(predicted, outputVectors.T)) # 1 * V
+    # y_hat_sum = np.sum(y_hat)
+    # y_hat = y_hat/y_hat_sum # 1*V the y_hat in doc
     # print 'y_hat[target]',y_hat[target]
     cost = - np.log(y_hat[target])
 
     y_hat[target] = y_hat[target] - 1
-    gradPred = np.dot( y_hat , outputVectors) # 1 * D
+    gradPred = np.dot( y_hat , outputVectors) # 1 * H
 
-    grad = np.dot(y_hat[:,np.newaxis], predicted[np.newaxis,:]) # V * D
+    grad = np.dot(y_hat[:,np.newaxis], predicted[np.newaxis,:]) # V * H
     ### END YOUR CODE
 
     return cost, gradPred, grad
@@ -165,7 +165,6 @@ def skipgram(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     ### YOUR CODE HERE
     c_index = tokens[currentWord]
     context_index_list = [tokens[contextWord] for contextWord in contextWords]
-    N = len(context_index_list)
     predicted = inputVectors[c_index]
     cum_cost = 0.0
 
@@ -201,7 +200,15 @@ def cbow(currentWord, C, contextWords, tokens, inputVectors, outputVectors,
     gradOut = np.zeros(outputVectors.shape)
 
     ### YOUR CODE HERE
-    # raise NotImplementedError
+    c_index = tokens[currentWord]
+    context_index_list = [tokens[contextWord] for contextWord in contextWords]
+    predicted = np.zeros(inputVectors[c_index].shape)
+    for target_index in context_index_list:
+        predicted += inputVectors[target_index,:]
+    cost, row_gradIn, row_gradOut = word2vecCostAndGradient(predicted, c_index, outputVectors, dataset)
+    for target_index in context_index_list:
+        gradIn[target_index,:]+=row_gradIn
+    gradOut = row_gradOut
     ### END YOUR CODE
 
     return cost, gradIn, gradOut
