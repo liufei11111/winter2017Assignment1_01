@@ -31,11 +31,8 @@ def softmax(x):
     if len(x.shape) > 1:
         # Matrix
         ### YOUR CODE HERE
-        # print "x",x
         max_x = np.max(x, axis=1).reshape(orig_shape[0], 1)
-        # print 'max_x', max_x
         x = np.subtract(x, max_x)
-        # print x
         x = np.exp(x)
         sum_exp_x = np.sum(x, axis=1)
         sum_exp_x = sum_exp_x.reshape(orig_shape[0], 1)

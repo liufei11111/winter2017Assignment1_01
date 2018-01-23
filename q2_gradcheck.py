@@ -42,7 +42,6 @@ def gradcheck_naive(f, x):
         fx_h_1,_ = f(x)
         x[ix]=x[ix]-2*h
         random.setstate(rndstate)
-        # print ix, ' call f - h'
         fx_h_2,_ = f(x)
         x[ix]=x[ix]+h
         numgrad = (fx_h_1-fx_h_2)/(2*h)
