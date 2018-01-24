@@ -65,7 +65,7 @@ def getRegularizationValues():
     """
     values = None   # Assign a list of floats in the block below
     ### YOUR CODE HERE
-    values = [pow(2.0,i) for i in xrange(-15,5)]
+    values = [pow(2.0,i) for i in xrange(-15,10)]
     ### END YOUR CODE
     return sorted(values)
 
